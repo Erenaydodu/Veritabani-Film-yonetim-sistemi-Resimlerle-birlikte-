@@ -1,0 +1,593 @@
+using System.Data;
+using System.IO.Packaging;
+using System.Windows.Forms;
+using Npgsql;
+
+namespace VeriProje
+{
+    public partial class Form1 : Form
+    {
+        NpgsqlConnection baglanti = new NpgsqlConnection("Server=localhost; Port=5432; Database=Veri; Username=postgres; Password=1234;");
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void button1_Click(object sender, EventArgs e)//Film listeleme
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select * from filmler", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)//Film Ekle Butonu
+        {
+            if (textBox1.Text == "" || textBox2.Text == "" || textBox3.Text == "" || textBox4.Text == "" || textBox5.Text == "" || textBox6.Text == "")
+            {
+                MessageBox.Show("Lütfen Bütün Verileri Doldurunuz");
+            }
+            else
+            {
+                baglanti.Open();
+                NpgsqlCommand komutekle = new NpgsqlCommand("insert into filmler(id,adi,reyting,butce,cikisyili,gise,filmresim) values(@k1,@k2,@k3,@k4,@k5,@k6,@k7)", baglanti);
+                komutekle.Parameters.AddWithValue("@k1", int.Parse(textBox1.Text));
+                komutekle.Parameters.AddWithValue("@k2", textBox2.Text);
+                komutekle.Parameters.AddWithValue("@k3", int.Parse(textBox3.Text));
+                komutekle.Parameters.AddWithValue("@k4", int.Parse(textBox6.Text));
+                komutekle.Parameters.AddWithValue("@k5", Convert.ToDateTime(textBox5.Text));
+                komutekle.Parameters.AddWithValue("@k6", int.Parse(textBox4.Text));
+                komutekle.Parameters.AddWithValue("@k7", txtresim.Text);
+                komutekle.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("kayıt ekleme işlemi başarılı.");
+            }
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)//Film Güncelle Butonu
+        {
+            if (textBox1.Text == "")
+            {
+                MessageBox.Show("Güncelleme işlemi filmid ye göre yapılmaktadır lütfen boş bırakmayınız...");
+            }
+            else
+            {
+                baglanti.Open();
+                NpgsqlCommand komut = new NpgsqlCommand("update filmler set adi=@adi,reyting=@rating,butce=@butce,cikisyili=@yapimyili,gise=@gisesayisi where id=@filmid", baglanti);
+                komut.Parameters.AddWithValue("@filmid", int.Parse(textBox1.Text));
+                komut.Parameters.AddWithValue("@adi", textBox2.Text);
+                komut.Parameters.AddWithValue("@rating", int.Parse(textBox3.Text));
+                komut.Parameters.AddWithValue("@butce", int.Parse(textBox4.Text));
+                komut.Parameters.AddWithValue("@yapimyili", Convert.ToDateTime(textBox5.Text));
+                komut.Parameters.AddWithValue("@gisesayisi", int.Parse(textBox6.Text));
+                komut.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("Güncelleme Tamamlandı");
+            }
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)//Film Silme Butonu
+        {
+            if (textBox1.Text == "")
+            {
+                MessageBox.Show("Filmid ye göre silinme işlemi yapılmaktadır lütfen film id giriniz!!!");
+            }
+            else
+            {
+                baglanti.Open();
+
+                NpgsqlCommand verisil1 = new NpgsqlCommand("delete from filmoyuncu where filmid=@k1", baglanti);
+                verisil1.Parameters.AddWithValue("@k1", int.Parse(textBox1.Text));
+                verisil1.ExecuteNonQuery();
+
+                NpgsqlCommand verisil2 = new NpgsqlCommand("delete from filmoyuncuodul where filmid=@k2", baglanti);
+                verisil2.Parameters.AddWithValue("@k2", int.Parse(textBox1.Text));
+                verisil2.ExecuteNonQuery();
+
+                NpgsqlCommand verisil3 = new NpgsqlCommand("delete from filmtur where filmid=@k3", baglanti);
+                verisil3.Parameters.AddWithValue("@k3", int.Parse(textBox1.Text));
+                verisil3.ExecuteNonQuery();
+
+                NpgsqlCommand verisil4 = new NpgsqlCommand("delete from filmyonetmen where filmid=@k4", baglanti);
+                verisil4.Parameters.AddWithValue("@k4", int.Parse(textBox1.Text));
+                verisil4.ExecuteNonQuery();
+
+                NpgsqlCommand verisil5 = new NpgsqlCommand("delete from filmler where id=@k5", baglanti);
+                verisil5.Parameters.AddWithValue("@k5", int.Parse(textBox1.Text));
+                verisil5.ExecuteNonQuery();
+
+                baglanti.Close();
+                MessageBox.Show("Veriniz Silindi");
+            }
+
+        }
+
+        private void button7_Click(object sender, EventArgs e)//Oyuncu Listeleme
+        {
+            baglanti.Open();
+            NpgsqlDataAdapter komut = new NpgsqlDataAdapter("Select * from oyuncular", baglanti);
+            DataSet ds = new DataSet();
+            komut.Fill(ds);
+            dataGridView2.DataSource = ds.Tables[0];
+            baglanti.Close();
+        }
+
+        private void button8_Click(object sender, EventArgs e)//Oyuncu Ekle
+        {
+            baglanti.Open();
+            NpgsqlCommand komut = new NpgsqlCommand("insert into oyuncular(id,sahneadi,adi,dogum,cinsiyet) values(@k1,@k2,@k3,@k4,@k5)", baglanti);
+            komut.Parameters.AddWithValue("@k1", int.Parse(textBox7.Text));
+            komut.Parameters.AddWithValue("@k2", textBox8.Text);
+            komut.Parameters.AddWithValue("@k3", (textBox9.Text));
+            komut.Parameters.AddWithValue("@k4", Convert.ToDateTime(textBox10.Text));
+            komut.Parameters.AddWithValue("@k5", (textBox11.Text));
+
+            komut.ExecuteNonQuery();
+
+            NpgsqlCommand komut2 = new NpgsqlCommand("insert into filmoyuncu (id,oyuncuid,filmid) values(@k1,@k2,@k3)", baglanti);
+            komut2.Parameters.AddWithValue("@k2",int.Parse(textBox7.Text));
+            komut2.Parameters.AddWithValue("@k3",int.Parse(textBox22.Text));
+            komut2.Parameters.AddWithValue("@k1", int.Parse(textBox23.Text));
+            komut2.ExecuteNonQuery();
+
+            MessageBox.Show("Veri Ekleme Tamamlandı");
+            baglanti.Close();
+        }
+
+        private void button6_Click(object sender, EventArgs e)//Oyuncu Güncelleme
+        {
+            if (textBox7.Text == "")
+            {
+                MessageBox.Show("Güncelleme işlemi oyuncuid ye göre yapılmaktadır lütfen boş bırakmaynız");
+            }
+            else
+            {
+                baglanti.Open();
+                NpgsqlCommand komut = new NpgsqlCommand("update oyuncular set sahneadi=@k2,adi=@k3,dogum=@k4,cinsiyet=@k5 where id=@k1", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox7.Text));
+                komut.Parameters.AddWithValue("@k2", textBox8.Text);
+                komut.Parameters.AddWithValue("@k3", textBox9.Text);
+                komut.Parameters.AddWithValue("@k4", Convert.ToDateTime(textBox10.Text));
+                komut.Parameters.AddWithValue("@k5", textBox11.Text);
+                komut.ExecuteNonQuery();
+                MessageBox.Show("Güncelleme İşlemi Tamamlandı...");
+                baglanti.Close();
+            }
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)//Oyuncu Silme Butonu
+        {
+            if (textBox7.Text == "")
+            {
+                MessageBox.Show("Silme İşlemi oyuncuid e göre yapılmaktadır lütfen oyuncu id giriniz...");
+            }
+            else
+            {
+                baglanti.Open();
+
+                NpgsqlCommand verisil1 = new NpgsqlCommand("delete from filmoyuncuodul where oyuncuid=@k1", baglanti);
+                verisil1.Parameters.AddWithValue("@k1", int.Parse(textBox7.Text));
+                verisil1.ExecuteNonQuery();
+
+                NpgsqlCommand verisil2 = new NpgsqlCommand("delete from filmoyuncu where oyuncuid=@k2", baglanti);
+                verisil2.Parameters.AddWithValue("@k2", int.Parse(textBox7.Text));
+                verisil2.ExecuteNonQuery();
+
+                NpgsqlCommand verisil3 = new NpgsqlCommand("delete from oyuncular where id=@k3", baglanti);
+                verisil3.Parameters.AddWithValue("@k3", int.Parse(textBox7.Text));
+                verisil3.ExecuteNonQuery();
+
+                baglanti.Close();
+                MessageBox.Show("Verileriniz Silindi");
+            }
+        }
+
+        private void button9_Click(object sender, EventArgs e)//Yonetmen Listeleme
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select * from yonetmenler", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView3.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+            }
+
+        }
+
+        private void button10_Click(object sender, EventArgs e)//Yonetmen Ekle
+        {
+            baglanti.Open();
+            if (textBox12.Text == "" || textBox13.Text == "" || textBox14.Text == "" || textBox15.Text == "" || textBox16.Text == "")
+            {
+                MessageBox.Show("Lütfen Bütün Bilgileri Doldurunuz...");
+            }
+            else
+            {
+                NpgsqlCommand komut = new NpgsqlCommand("insert into yonetmenler(id,sahneadi,adi,dogum,cinsiyet) values(@k1,@k2,@k3,@k4,@k5)", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox12.Text));
+                komut.Parameters.AddWithValue("@k2", textBox13.Text);
+                komut.Parameters.AddWithValue("@k3", textBox14.Text);
+                komut.Parameters.AddWithValue("@k4", Convert.ToDateTime(textBox15.Text));
+                komut.Parameters.AddWithValue("@k5", textBox16.Text);
+                komut.ExecuteNonQuery();
+
+                NpgsqlCommand komut2 = new NpgsqlCommand("insert into filmyonetmen(id,filmid,yonetmenid) values(@k1,@k2,@k3)", baglanti);
+                komut2.Parameters.AddWithValue("@k1", int.Parse(textBox25.Text));
+                komut2.Parameters.AddWithValue("@k2", int.Parse(textBox26.Text));
+                komut2.Parameters.AddWithValue("@k3", int.Parse(textBox12.Text));
+                komut2.ExecuteNonQuery();
+
+                baglanti.Close();
+                MessageBox.Show("Kayıt Ekleme İslemi Basarılı");
+            }
+
+        }
+
+        private void button11_Click(object sender, EventArgs e)//Yonetmen Guncelle
+        {
+            if (textBox12.Text == "")
+            {
+                MessageBox.Show("Güncelleme işlemi yonetmenid ye göre yapılmaktadır lütfen boş bırakmayınız...");
+            }
+            else
+            {
+                baglanti.Open();
+                NpgsqlCommand komut = new NpgsqlCommand("update yonetmenler set sahneadi=@k2,adi=@k3,dogum=@k4,cinsiyet=@k5 where id=@k1", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox12.Text));
+                komut.Parameters.AddWithValue("@k2", textBox13.Text);
+                komut.Parameters.AddWithValue("@k3", (textBox14.Text));
+                komut.Parameters.AddWithValue("@k4", Convert.ToDateTime(textBox15.Text));
+                komut.Parameters.AddWithValue("@k5", (textBox16.Text));
+
+                komut.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("Güncelleme Tamamlandı");
+            }
+        }
+
+        private void button12_Click(object sender, EventArgs e)//Yonetmen Sil
+        {
+            if (textBox12.Text == "")
+            {
+                MessageBox.Show("Silme İşlemi Yonetmen ıd e göre yapılmaktadır lütfen yonetmen id giriniz...");
+            }
+            else
+            {
+                baglanti.Open();
+
+                NpgsqlCommand verisil1 = new NpgsqlCommand("delete  from filmyonetmen where yonetmenid=@k1", baglanti);
+                verisil1.Parameters.AddWithValue("@k1", int.Parse(textBox12.Text));
+                verisil1.ExecuteNonQuery();
+
+                NpgsqlCommand verisil2 = new NpgsqlCommand("delete  from yonetmenler where id=@k2", baglanti);
+                verisil2.Parameters.AddWithValue("@k2", int.Parse(textBox12.Text));
+                verisil2.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("Veriler Silindi");
+            }
+        }
+
+        private void button16_Click(object sender, EventArgs e)//Ödül Listele
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select * from oduller", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView4.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+            }
+        }
+
+        private void button15_Click(object sender, EventArgs e)//odul ekleme
+        {
+            baglanti.Open();
+            if (textBox17.Text == "" || textBox18.Text == "")
+            {
+                MessageBox.Show("Lütfen Bütün Bilgileri Doldurunuz...");
+            }
+            else
+            {
+                NpgsqlCommand komut = new NpgsqlCommand("insert into oduller(id,name) values(@k1,@k2)", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox17.Text));
+                komut.Parameters.AddWithValue("@k2", (textBox18.Text));
+
+                komut.ExecuteNonQuery();
+
+                NpgsqlCommand komut2 = new NpgsqlCommand("insert into filmoyuncuodul(id,filmid,oyuncuid,odulid) values(@k1,@k2,@k3,@k4)", baglanti);
+                komut2.Parameters.AddWithValue("@k1", int.Parse(textBox28.Text));
+                komut2.Parameters.AddWithValue("@k2", int.Parse(textBox27.Text));
+                komut2.Parameters.AddWithValue("@k3", int.Parse(textBox29.Text));
+                komut2.Parameters.AddWithValue("@k4", int.Parse(textBox17.Text));
+                komut2.ExecuteNonQuery();
+
+                baglanti.Close();
+                MessageBox.Show("Kayıt Ekleme İslemi Basarılı");
+            }
+        }
+
+        private void button14_Click(object sender, EventArgs e)//Odul Güncelleme
+        {
+            if (textBox17.Text == "")
+            {
+                MessageBox.Show("Güncelleme işlemi odulid ye göre yapılmaktadır lütfen boş bırakmayınız...");
+            }
+            else
+            {
+                baglanti.Open();
+                NpgsqlCommand komut = new NpgsqlCommand("update oduller set name=@k2 where id=@k1", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox17.Text));
+                komut.Parameters.AddWithValue("@k2", (textBox18.Text));
+
+                komut.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("Güncelleme Tamamlandı");
+            }
+        }
+
+        private void button13_Click(object sender, EventArgs e)//Odul Silme
+        {
+            if (textBox17.Text == "")
+            {
+                MessageBox.Show("Silme İşlemi Ödül id ye göre yapılmaktadır lütfen Ödül id giriniz...");
+            }
+            else
+            {
+                baglanti.Open();
+
+                NpgsqlCommand verisil1 = new NpgsqlCommand("delete  from filmoyuncuodul where odulid=@k1", baglanti);
+                verisil1.Parameters.AddWithValue("@k1", int.Parse(textBox17.Text));
+                verisil1.ExecuteNonQuery();
+
+                NpgsqlCommand verisil2 = new NpgsqlCommand("delete  from oduller where id=@k2", baglanti);
+                verisil2.Parameters.AddWithValue("@k2", int.Parse(textBox17.Text));
+                verisil2.ExecuteNonQuery();
+
+                baglanti.Close();
+                MessageBox.Show("Kayıtlar silindi");
+            }
+        }
+
+        private void button17_Click(object sender, EventArgs e)//Oyuncuların Oynadığı Filmlerin Listesi
+        {
+            Form2 form2 = new Form2();
+            form2.ShowDialog();
+        }
+
+        private void button18_Click(object sender, EventArgs e)//Yonetmenin Çketiği Filmler ve Ödüller
+        {
+            Form3 form3 = new Form3();
+            form3.ShowDialog();
+
+        }
+
+        private void button19_Click(object sender, EventArgs e)//Bir yönetmenin birlikte çalıştığı oyuncuların listesi
+        {
+            Form4 form4 = new Form4();
+            form4.ShowDialog();
+        }
+
+        private void button20_Click(object sender, EventArgs e)//Birden çok filmde birlikte oynayan oyuncuların listesini, birlikte oynadıkları film sayısı sırasındaki listesi
+        {
+            Form5 form5 = new Form5();
+            form5.ShowDialog();
+        }
+
+        private void tabPage1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button21_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex++;
+        }
+
+        private void button22_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex++;
+        }
+
+        private void button28_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex--;
+        }
+
+        private void button23_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex++;
+        }
+
+        private void button27_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex--;
+        }
+
+        private void button24_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex++;
+        }
+
+        private void button26_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex--;
+        }
+
+        private void button25_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex--;
+        }
+
+        private void button29_Click(object sender, EventArgs e)//Belirli bir türdeki en yüksek rating’e sahip 10 filmin özet bilgileri
+        {
+            Form6 form6 = new Form6();
+            form6.ShowDialog();
+        }
+
+        private void button30_Click(object sender, EventArgs e)
+        {
+            Form7 form7 = new Form7();
+            form7.ShowDialog();
+        }
+
+        private void button31_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.ShowDialog();
+            pictureBox1.ImageLocation = openFileDialog1.FileName;
+            txtresim.Text = openFileDialog1.FileName;
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)//Sectiğimiz filmin resmini pictureboxa getirme
+        {
+            int secilen = dataGridView1.SelectedCells[0].RowIndex;
+            pictureBox1.ImageLocation = dataGridView1.Rows[secilen].Cells[6].Value.ToString();
+        }
+
+        private void button32_Click(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex++;
+        }
+
+        private void button30_Click_1(object sender, EventArgs e)
+        {
+            tabControl1.SelectedIndex--;
+        }
+
+        private void button36_Click(object sender, EventArgs e)//Turleri Listeleme
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select * from turler", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView5.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+            }
+        }
+
+        private void button35_Click(object sender, EventArgs e)//Tur Ekleme
+        {
+            baglanti.Open();
+            if (textBox20.Text == "" || textBox19.Text == "")
+            {
+                MessageBox.Show("Lütfen Bütün Bilgileri Doldurunuz...");
+            }
+            else
+            {
+                NpgsqlCommand komut = new NpgsqlCommand("insert into turler(id,adi) values(@k1,@k2)", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox20.Text));
+                komut.Parameters.AddWithValue("@k2", (textBox19.Text));
+                komut.ExecuteNonQuery();
+
+                NpgsqlCommand komut2 = new NpgsqlCommand("insert into filmtur(id,filmid,turid) values(@k1,@k2,@k3)", baglanti);
+                komut2.Parameters.AddWithValue("@k3", int.Parse(textBox20.Text));
+                komut2.Parameters.AddWithValue("@k2", int.Parse(textBox21.Text));
+                komut2.Parameters.AddWithValue("@k1", int.Parse(textBox24.Text));
+
+                komut2.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("Kayıt Ekleme İslemi Basarılı");
+            }
+        }
+
+        private void button34_Click(object sender, EventArgs e)//Tur Guncelleme
+        {
+            if (textBox20.Text == "")
+            {
+                MessageBox.Show("Güncelleme işlemi turid ye göre yapılmaktadır lütfen boş bırakmayınız...");
+            }
+            else
+            {
+                baglanti.Open();
+                NpgsqlCommand komut = new NpgsqlCommand("update turler set adi=@k2 where id=@k1", baglanti);
+                komut.Parameters.AddWithValue("@k1", int.Parse(textBox20.Text));
+                komut.Parameters.AddWithValue("@k2", (textBox19.Text));
+
+                komut.ExecuteNonQuery();
+                baglanti.Close();
+                MessageBox.Show("Güncelleme Tamamlandı");
+            }
+        }
+
+        private void button33_Click(object sender, EventArgs e)//Tur Silme
+        {
+            if (textBox20.Text == "")
+            {
+                MessageBox.Show("Silme İşlemi Turid ye göre yapılmaktadır lütfen turid giriniz...");
+            }
+            else
+            {
+                baglanti.Open();
+
+                NpgsqlCommand verisil1 = new NpgsqlCommand("delete  from filmtur where turid=@k1", baglanti);
+                verisil1.Parameters.AddWithValue("@k1", int.Parse(textBox20.Text));
+                verisil1.ExecuteNonQuery();
+
+                NpgsqlCommand verisil2 = new NpgsqlCommand("delete  from turler where id=@k2", baglanti);
+                verisil2.Parameters.AddWithValue("@k2", int.Parse(textBox20.Text));
+                verisil2.ExecuteNonQuery();
+
+                baglanti.Close();
+                MessageBox.Show("Kayıtlar silindi");
+            }
+        }
+    }
+}
