@@ -1,0 +1,76 @@
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace VeriProje
+{
+
+    public partial class Form4 : Form
+    {
+        NpgsqlConnection baglanti = new NpgsqlConnection("Server=localhost; Port=5432; Database=Veri; Username=postgres; Password=1234;");
+        public Form4()
+        {
+            InitializeComponent();
+        }
+
+        private void Form4_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select yonetmenler.adi as yonetmen_adi,oyuncular.adi as oyuncu_adi,count(*) from filmoyuncu inner join filmyonetmen on filmoyuncu.filmid=filmyonetmen.filmid\r\ninner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id\r\ninner join yonetmenler on filmyonetmen.yonetmenid=yonetmenler.id\r\ngroup by yonetmenler.adi,oyuncular.adi\r\n", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)//Yonetmen Adina Göre Arama
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select yonetmenler.adi as yonetmen_adi,oyuncular.adi as oyuncu_adi,count(*) from filmoyuncu inner join filmyonetmen on filmoyuncu.filmid=filmyonetmen.filmid\r\ninner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id\r\ninner join yonetmenler on filmyonetmen.yonetmenid=yonetmenler.id\r\nwhere yonetmenler.adi='"+textBox1.Text+"'\r\ngroup by yonetmenler.adi,oyuncular.adi\r\n", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+    }
+}
