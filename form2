@@ -1,0 +1,80 @@
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace VeriProje
+{
+    public partial class Form2 : Form
+    {
+        NpgsqlConnection baglanti = new NpgsqlConnection("Server=localhost; Port=5432; Database=Veri; Username=postgres; Password=1234;");
+        public Form2()
+        {
+            InitializeComponent();
+        }
+
+        private void Form2_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)//Oyuncu Adına Göre Listeleme
+        {
+            try
+            {
+
+                baglanti.Open();
+                //select filmler.adi as Oynadıgı_Filmler,oyuncular.adi as oyuncu from filmoyuncu inner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id inner join filmler on filmoyuncu.filmid=filmler.id
+                //select oyuncu.sahneadi,oyuncu.gercekadi,film.adi as Oynadıgı_Film from film inner join filmoyuncu on film.filmid=filmoyuncu.filmid inner join oyuncu on filmoyuncu.oyuncuid=oyuncu.oyuncuid
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select oyuncular.adi as oyuncu_adi,filmler.adi from filmoyuncu inner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id\r\ninner join filmler on filmoyuncu.filmid=filmler.id where oyuncular.adi='" + textBox1.Text + "'", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)//Bütün oyuncuları ve oynadıgı filmleri listeleme
+        {
+            try
+            {
+
+                baglanti.Open();
+                
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select oyuncular.adi as oyuncu_adi,filmler.adi from filmoyuncu inner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id\r\ninner join filmler on filmoyuncu.filmid=filmler.id", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+    }
+}
