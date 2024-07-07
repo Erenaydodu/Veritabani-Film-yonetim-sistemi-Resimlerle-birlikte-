@@ -1,0 +1,75 @@
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace VeriProje
+{
+    public partial class Form6 : Form
+    {
+        NpgsqlConnection baglanti = new NpgsqlConnection("Server=localhost; Port=5432; Database=Veri; Username=postgres; Password=1234;");
+        public Form6()
+        {
+            InitializeComponent();
+        }
+
+        private void Form6_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)//Turune Göre Verileri Getirme
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select filmler.adi as film_adi,turler.adi as Film_Turu,yonetmenler.adi as Yonetmen_Adi,oyuncular.adi as Oyuncu_Adi,filmler.reyting from filmler \r\ninner join filmyonetmen on filmler.id=filmyonetmen.filmid inner join yonetmenler on filmyonetmen.yonetmenid=yonetmenler.id\r\ninner join filmoyuncu on filmler.id=filmoyuncu.filmid inner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id\r\ninner join filmtur on filmler.id=filmtur.filmid\r\ninner join turler on filmtur.turid=turler.id where turler.adi='" + textBox1.Text + "' order by filmler.reyting  desc limit 10", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select filmler.adi as film_adi,turler.adi as Film_Turu,yonetmenler.adi as Yonetmen_Adi,oyuncular.adi as Oyuncu_Adi,filmler.reyting from filmler \r\ninner join filmyonetmen on filmler.id=filmyonetmen.filmid inner join yonetmenler on filmyonetmen.yonetmenid=yonetmenler.id\r\ninner join filmoyuncu on filmler.id=filmoyuncu.filmid inner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id\r\ninner join filmtur on filmler.id=filmtur.filmid\r\ninner join turler on filmtur.turid=turler.id  order by filmler.reyting  desc limit 10", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+    }
+}
