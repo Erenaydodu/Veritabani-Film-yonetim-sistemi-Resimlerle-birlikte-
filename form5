@@ -1,0 +1,51 @@
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace VeriProje
+{
+    public partial class Form5 : Form
+    {
+        NpgsqlConnection baglanti = new NpgsqlConnection("Server=localhost; Port=5432; Database=Veri; Username=postgres; Password=1234;");
+        public Form5()
+        {
+            InitializeComponent();
+        }
+
+        private void Form5_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                baglanti.Open();
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("SELECT\r\n    o1.adi AS oyuncu1_adi,\r\n    o2.adi AS oyuncu2_adi,\r\n    COUNT(*) AS birlikte_oynadiklari_film_sayisi\r\nFROM\r\n    public.filmoyuncu o1fo\r\nJOIN\r\n    public.filmoyuncu o2fo ON o1fo.filmid = o2fo.filmid AND o1fo.oyuncuid < o2fo.oyuncuid\r\nJOIN\r\n    public.oyuncular o1 ON o1fo.oyuncuid = o1.id\r\nJOIN\r\n    public.oyuncular o2 ON o2fo.oyuncuid = o2.id\r\nGROUP BY\r\n    o1.adi, o2.adi\r\nORDER BY\r\n    birlikte_oynadiklari_film_sayisi DESC;\r\n", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+    }
+}
