@@ -1,0 +1,104 @@
+using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace VeriProje
+{
+    public partial class Form3 : Form
+    {
+        NpgsqlConnection baglanti = new NpgsqlConnection("Server=localhost; Port=5432; Database=Veri; Username=postgres; Password=1234;");
+        public Form3()
+        {
+            InitializeComponent();
+        }
+
+        private void Form3_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)//Yonetmen Adına Gore Gösterme
+        {
+            try
+            {
+
+                baglanti.Open();
+                //select filmler.adi as Oynadıgı_Filmler,oyuncular.adi as oyuncu from filmoyuncu inner join oyuncular on filmoyuncu.oyuncuid=oyuncular.id inner join filmler on filmoyuncu.filmid=filmler.id
+                //select oyuncu.sahneadi,oyuncu.gercekadi,film.adi as Oynadıgı_Film from film inner join filmoyuncu on film.filmid=filmoyuncu.filmid inner join oyuncu on filmoyuncu.oyuncuid=oyuncu.oyuncuid
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select yonetmenler.adi as yonetmen_adi,filmler.adi as film_adi,oduller.name as odul_adi from yonetmenler left join filmyonetmen on filmyonetmen.yonetmenid=yonetmenler.id left join filmler on filmyonetmen.filmid=filmler.id left join filmoyuncuodul on filmyonetmen.filmid=filmoyuncuodul.filmid left join oduller on filmoyuncuodul.odulid=oduller.id where yonetmenler.adi='"+textBox1.Text+"'", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)//Butun Ödül Almıs yonetmenleri Gosterme
+        {
+            try
+            {
+                baglanti.Open();
+                //select film.adi as Film_adı,oyuncu.gercekadi,oyuncu.sahneadi from film inner join oyuncu on film.filmid=oyuncu.filmid
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select yonetmenler.adi as yonetmen_adi,filmler.adi as film_adi,oduller.name as odul_adi from yonetmenler\r\nleft join filmyonetmen on filmyonetmen.yonetmenid=yonetmenler.id\r\nleft join filmler on filmyonetmen.filmid=filmler.id\r\nleft join filmoyuncuodul on filmyonetmen.filmid=filmoyuncuodul.filmid\r\nleft join oduller on filmoyuncuodul.odulid=oduller.id", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)//Sadece ödül Alan Yonetmenler
+        {
+            try
+            {
+                baglanti.Open();
+                //select film.adi as Film_adı,oyuncu.gercekadi,oyuncu.sahneadi from film inner join oyuncu on film.filmid=oyuncu.filmid
+                NpgsqlDataAdapter dt = new NpgsqlDataAdapter("select yonetmenler.adi as yonetmen_adi,filmler.adi as film_adi,oduller.name as odul_adi from filmyonetmen inner join yonetmenler on filmyonetmen.yonetmenid=yonetmenler.id\r\ninner join filmler on filmyonetmen.filmid=filmler.id\r\ninner join filmoyuncuodul on filmyonetmen.filmid=filmoyuncuodul.filmid\r\ninner join oduller on filmoyuncuodul.odulid=oduller.id", baglanti);
+                DataSet ds = new DataSet();
+                dt.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0];
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                if (baglanti != null)
+                {
+                    baglanti.Close();
+                }
+
+            }
+        }
+    }
+}
